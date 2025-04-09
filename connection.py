@@ -44,6 +44,7 @@ class Connection:
         except Exception as e:
             response = Response(INTERNAL_ERROR, str(e))
             self.respond(response)
+            disconnect = True
         finally:
             return disconnect
 
