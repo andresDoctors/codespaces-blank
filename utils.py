@@ -4,7 +4,6 @@ def parseNonNegativeInts(*args):
         raise ValueError()
     return nats
 
-
 def read_file_slice(filepath, offset, slice_size):
     with open(filepath, 'rb') as f:
         f.seek(offset)

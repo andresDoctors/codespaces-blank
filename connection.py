@@ -38,16 +38,20 @@ class Connection:
             self.client_socket.close()
 
     def receive(self):
-        while EOL not in self.buffer:
+
+        chunk = ''
+        while EOL[-1] not in chunk:
+            max_chunk_size = Connection.MAX_BUFFER_SIZE - len(self.buffer)
+
             try:
-                chunk = self.client_socket.recv(1024)
+                chunk = self.client_socket.recv(max_chunk_size)
             except Exception as e:
                 raise RecvException() from e
 
             chunk = chunk.decode('ascii')
             if chunk == '':
                 raise ConnectionClosedByPeer()
-            if len(self.buffer) + len(chunk) > Connection.MAX_BUFFER_SIZE:
+            if len(self.buffer) + len(chunk) == Connection.MAX_BUFFER_SIZE:
                 raise BufferOverflow()
 
             self.buffer += chunk

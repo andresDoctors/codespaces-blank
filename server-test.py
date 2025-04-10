@@ -1,13 +1,7 @@
-#!/usr/bin/env python
-# encoding: utf-8
-# Revisión 2019 (a Python 3 y base64): Pablo Ventura
-# Revisión 2011 Nicolás Wolovick
-# Copyright 2008-2010 Natalia Bidart y Daniel Moisset
-# $Id: server-test.py 388 2011-03-22 14:20:06Z nicolasw $
-
 import unittest
 import client
-import constants
+import protocol as constants
+import server
 import select
 import time
 import socket
@@ -63,7 +57,7 @@ class TestHFTPServer(TestBase):
     def test_connect_and_quit(self):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
-            s.connect((constants.DEFAULT_ADDR, constants.DEFAULT_PORT))
+            s.connect((server.DEFAULT_ADDR, server.DEFAULT_PORT))
         except socket.error:
             self.fail("No se pudo establecer conexión al server")
         s.send('quit\r\n'.encode("ascii"))
