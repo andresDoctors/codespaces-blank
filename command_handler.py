@@ -1,15 +1,7 @@
 import os
 import utils
 from base64 import b64encode
-from response import Response
-from constants import (
-    BAD_OFFSET,
-    CODE_OK,
-    EOL,
-    FILE_NOT_FOUND,
-    INVALID_ARGUMENTS,
-    INVALID_COMMAND,
-)
+from response import (Response, QuitRequest, INVALID_COMMAND, INVALID_ARGUMENTS, CODE_OK, FILE_NOT_FOUND, EOL, BAD_OFFSET)
 
 
 class CommandHandler:
@@ -66,4 +58,4 @@ class CommandHandler:
         return Response(CODE_OK, f'OK{EOL}{slice}')
 
     def quit(self):
-        return Response(CODE_OK, disconnect=True)
+        raise QuitRequest()

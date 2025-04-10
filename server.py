@@ -1,9 +1,11 @@
 import socket
 from connection import Connection
-from constants import (DEFAULT_ADDR, DEFAULT_PORT, DEFAULT_DIR)
 import argparse
 import select
 
+DEFAULT_DIR = 'testdata'
+DEFAULT_ADDR = '0.0.0.0'
+DEFAULT_PORT = 19500
 
 class Server(object):
 
@@ -24,7 +26,12 @@ class Server(object):
 
         while True:
             events = poller.poll()
-            for fd, _ in events:
+            for fd, event in events:
+                if event & select.POLLNVAL:
+                    self.connections.pop(fd)
+                    poller.unregister(fd)
+                    continue
+
                 if fd == self.server_socket.fileno():
                     client_socket, _ = self.server_socket.accept()
                     connection = Connection(client_socket, self.dir)
@@ -33,11 +40,7 @@ class Server(object):
                     continue
 
                 connection = self.connections[fd]
-                disconnect = connection.handle()
-                if disconnect:
-                    self.connections.pop(fd.fileno())
-                    self.connections.client_socket.close()
-
+                connection.handle()
 
 def parse_input():
     parser = argparse.ArgumentParser()
@@ -53,7 +56,6 @@ def parse_input():
 
     args = parser.parse_args()
     return args.address, args.port, args.directory
-
 
 if __name__ == '__main__':
     address, port, directory = parse_input()

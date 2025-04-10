@@ -1,22 +1,5 @@
-from constants import (BAD_EOL, BAD_REQUEST, EOL, INTERNAL_ERROR)
 from command_handler import CommandHandler
-from response import Response
-
-
-class ConnectionClosedByPeer(Exception):
-    pass
-
-
-class BufferOverflow(Exception):
-    pass
-
-
-class RecvException(Exception):
-    pass
-
-
-class SendallException(Exception):
-    pass
+from response import (Response, RecvException, SendallException, ConnectionClosedByPeer, BufferOverflow, QuitRequest, EOL, BAD_EOL, CODE_OK, BAD_REQUEST, INTERNAL_ERROR)
 
 
 class Connection:
@@ -28,26 +11,14 @@ class Connection:
         self.buffer = ''
 
     def handle(self):
-        disconnect = False
-
         try:
+            #while True:
             request = self.receive()
             response = self.process_request(request)
             self.respond(response)
-            disconnect = response.disconnect
-        except (RecvException, SendallException, ConnectionClosedByPeer):
-            disconnect = True
-        except BufferOverflow:
-            response = Response(BAD_REQUEST)
-            self.respond(response)
-            disconnect = True
         except Exception as e:
-            response = Response(INTERNAL_ERROR, str(e))
-            self.respond(response)
-            disconnect = True
-        finally:
-            return disconnect
-
+            self.respond_on_exception(e)
+            self.client_socket.close()
 
     def receive(self):
         while EOL not in self.buffer:
@@ -70,6 +41,13 @@ class Connection:
 
         return request
 
+    def process_request(self, request):
+        if '\n' in request:
+            return Response(BAD_EOL)
+
+        cmd, *args = request.split()
+        return self.command_handler(cmd, *args)
+
     def respond(self, response):
         message = f'{response.code} {response.body}{EOL}'
         message = message.encode('ascii')
@@ -79,9 +57,16 @@ class Connection:
         except Exception as e:
             raise SendallException() from e
 
-    def process_request(self, request):
-        if '\n' in request:
-            return Response(BAD_EOL)
+    def respond_on_exception(self, e):
+        RESPONSE_CODES = {
+            RecvException: None,
+            SendallException: None,
+            ConnectionClosedByPeer: None,
+            BufferOverflow: BAD_REQUEST,
+            QuitRequest: CODE_OK
+        }
 
-        cmd, *args = request.split()
-        return self.command_handler(cmd, *args)
+        code = RESPONSE_CODES.get(type(e), INTERNAL_ERROR)
+        if code is not None:
+            response = Response(code)
+            self.respond(response)

@@ -1,19 +1,12 @@
-#!/usr/bin/env python
-# encoding: utf-8
-# Revisión 2019 (a Python 3 y base64): Pablo Ventura
-# Revisiones 2013-2014 Carlos Bederián
-# Revisión 2011 Nicolás Wolovick
-# Copyright 2008-2010 Natalia Bidart y Daniel Moisset
-# $Id: client.py 387 2011-03-22 13:48:44Z nicolasw $
-
 import socket
 import logging
 import optparse
 import sys
 import time
 from base64 import b64decode
-from constants import *
 
+from server import DEFAULT_ADDR, DEFAULT_PORT
+from response import (CODE_OK, FILE_NOT_FOUND, EOL)
 
 class Client(object):
 
