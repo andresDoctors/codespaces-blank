@@ -19,28 +19,48 @@ class Server(object):
         self.server_socket.listen()
 
         self.connections = {}
+        self.poller = select.poll()
+        self.poller.register(self.server_socket, select.POLLIN)
 
     def serve(self):
-        poller = select.poll()
-        poller.register(self.server_socket, select.POLLIN)
-
         while True:
-            events = poller.poll()
+            events = self.poller.poll()
             for fd, event in events:
-                if event & select.POLLNVAL:
-                    self.connections.pop(fd)
-                    poller.unregister(fd)
-                    continue
-
                 if fd == self.server_socket.fileno():
-                    client_socket, _ = self.server_socket.accept()
-                    connection = Connection(client_socket, self.dir)
-                    self.connections[client_socket.fileno()] = connection
-                    poller.register(client_socket, select.POLLIN)
-                    continue
+                    self.handle_server_socket(event)
+                elif fd in self.connections:
+                    self.handle_client_socket(fd, event)
 
-                connection = self.connections[fd]
-                connection.handle()
+    def handle_server_socket(self, event):
+        SERVER_SOCKET_HANDLERS = {
+            select.POLLIN: self.accept_client,
+        }
+
+        for bitmask, handler in SERVER_SOCKET_HANDLERS.items():
+            if event & bitmask:
+                handler()
+    
+    def handle_client_socket(self, fd, event):
+        connection = self.connections[fd]
+        CLIENT_SOCKET_HANDLERS = {
+            select.POLLIN: connection.handle,
+            select.POLLNVAL: (lambda: self.remove_connection(fd)),
+        }
+
+        for bitmask, handler in CLIENT_SOCKET_HANDLERS.items():
+            if event & bitmask:
+                handler()
+
+    def accept_client(self):
+        client_socket, _ = self.server_socket.accept()
+        connection = Connection(client_socket, self.dir)
+        self.connections[client_socket.fileno()] = connection
+        self.poller.register(client_socket, select.POLLIN)
+
+    def remove_connection(self, fd):
+        self.connections.pop(fd)
+        self.poller.unregister(fd)
+
 
 def parse_input():
     parser = argparse.ArgumentParser()
