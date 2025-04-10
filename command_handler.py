@@ -1,7 +1,12 @@
 import os
 import utils
 from base64 import b64encode
-from response import (Response, QuitRequest, INVALID_COMMAND, INVALID_ARGUMENTS, CODE_OK, FILE_NOT_FOUND, EOL, BAD_OFFSET)
+from response import Response
+from protocol import INVALID_COMMAND, INVALID_ARGUMENTS, CODE_OK, FILE_NOT_FOUND, EOL, BAD_OFFSET
+
+
+class QuitRequest(Exception):
+    pass
 
 
 class CommandHandler:

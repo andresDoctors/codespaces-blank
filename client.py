@@ -4,9 +4,8 @@ import optparse
 import sys
 import time
 from base64 import b64decode
-
 from server import DEFAULT_ADDR, DEFAULT_PORT
-from response import (CODE_OK, FILE_NOT_FOUND, EOL)
+from protocol import (CODE_OK, FILE_NOT_FOUND, EOL)
 
 class Client(object):
 

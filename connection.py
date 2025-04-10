@@ -1,5 +1,22 @@
-from command_handler import CommandHandler
-from response import (Response, RecvException, SendallException, ConnectionClosedByPeer, BufferOverflow, QuitRequest, EOL, BAD_EOL, CODE_OK, BAD_REQUEST, INTERNAL_ERROR)
+from command_handler import (CommandHandler, QuitRequest)
+from response import Response
+from protocol import EOL, BAD_EOL, CODE_OK, BAD_REQUEST, INTERNAL_ERROR
+
+
+class ConnectionClosedByPeer(Exception):
+    pass
+
+
+class BufferOverflow(Exception):
+    pass
+
+
+class RecvException(Exception):
+    pass
+
+
+class SendallException(Exception):
+    pass
 
 
 class Connection:
